@@ -39,8 +39,8 @@ def create_app():
 
     # Inject now into all templates
     from datetime import datetime as dt
-@app.context_processor
-    def inject_globals():
+    @app.context_processor
+      def inject_globals():
         return {'now': dt.utcnow()}
 
     @app.before_request
