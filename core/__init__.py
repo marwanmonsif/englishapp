@@ -42,6 +42,20 @@ def create_app():
     @app.context_processor
     def inject_globals():
         return {'now': dt.utcnow()}
+        @app.before_request
+def check_single_session():
+    from flask import session, redirect, url_for
+    from flask_login import current_user
+    if current_user.is_authenticated:
+        saved_token = session.get('user_token')
+        if current_user.session_token != saved_token:
+            current_user.is_banned = True
+            current_user.session_token = None
+            db.session.commit()
+            from flask_login import logout_user
+            logout_user()
+            session.clear()
+            return redirect(url_for('auth.login'))
 
     # Blueprints
     from core.routes.auth import auth_bp
