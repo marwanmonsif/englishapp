@@ -26,7 +26,7 @@ user.session_token = secrets.token_hex(32)
 db.session.commit()
 session['user_token'] = user.session_token
 login_user(user, remember=True)
-    if user.role == 'teacher':
+if user.role == 'teacher':
                 return redirect(url_for('teacher.dashboard'))
             return redirect(url_for('student.dashboard'))
         flash('Invalid email or password.', 'error')
