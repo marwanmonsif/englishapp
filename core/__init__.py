@@ -49,6 +49,8 @@ def create_app():
         from flask import session, redirect, url_for
         from flask_login import current_user
         if current_user.is_authenticated:
+            if current_user.role == 'teacher':
+                return
             saved_token = session.get('user_token')
             if current_user.session_token != saved_token:
                 current_user.is_banned = True
