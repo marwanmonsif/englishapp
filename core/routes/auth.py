@@ -3,6 +3,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import login_user, logout_user, login_required, current_user
 from core.extensions import db
 from core.models import User, Grade
+import secrets
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -21,6 +22,12 @@ def login():
             if user.is_banned:
                 flash('Your account has been banned. Contact your teacher.', 'error')
                 return redirect(url_for('auth.login'))
+
+            # Generate new session token
+            user.session_token = secrets.token_hex(32)
+            db.session.commit()
+            session['user_token'] = user.session_token
+
             login_user(user, remember=True)
             if user.role == 'teacher':
                 return redirect(url_for('teacher.dashboard'))
@@ -66,6 +73,12 @@ def register():
         )
         db.session.add(user)
         db.session.commit()
+
+        # Generate session token for new user
+        user.session_token = secrets.token_hex(32)
+        db.session.commit()
+        session['user_token'] = user.session_token
+
         login_user(user, remember=True)
         flash('Account created! Please activate your subscription.', 'success')
         return redirect(url_for('student.activate'))
@@ -76,5 +89,9 @@ def register():
 @auth_bp.route('/logout')
 @login_required
 def logout():
+    if current_user.is_authenticated:
+        current_user.session_token = None
+        db.session.commit()
+    session.clear()
     logout_user()
     return redirect(url_for('auth.login'))
